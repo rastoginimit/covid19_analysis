@@ -1,19 +1,20 @@
 from datetime import date
 import os.path
+from pathlib import Path
 import requests
 import pandas as pd 
 
-def download_data(new_file_name):
-    if os.path.isfile(new_file_name):
+def download_data(new_file):
+    if new_file.exists() :
         print("file aready present, no need to downloand again!")
     else:
         print("downloanding data!")
         response = requests.get(url)
-        with open(new_file_name, 'wb') as f:
+        with open(new_file, 'wb') as f:
             f.write(response.content)
 
 def aggregation_check(raw_df, aggregated_file):
-    if os.path.isfile(aggregated_file):
+    if aggregated_file.exists():
         agg_df    = pd.read_csv(aggregated_file, dtype=str)
         left_join = pd.merge(raw_df,
                             agg_df[['dateRep', 'countriesAndTerritories', 'total_cases']],
@@ -28,8 +29,12 @@ def aggregation_check(raw_df, aggregated_file):
 
 url = 'https://opendata.ecdc.europa.eu/covid19/casedistribution/csv'
 today = date.today().strftime("%Y-%m-%d")
-new_file = 'eu_data_'+today+'.csv'
-aggregated_file = 'eu_data_aggregated.csv'
+
+base_path = Path(__file__).parent
+new_file_rel_path = "./data/eu_data_"+today+".csv"
+aggregated_file_rel_path = "./data/eu_data_aggregated.csv"
+new_file  = (base_path / new_file_rel_path).resolve()
+aggregated_file  = (base_path / aggregated_file_rel_path).resolve()
 
 download_data(new_file)
 
